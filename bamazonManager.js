@@ -19,16 +19,68 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
 if (err) throw err;
 console.log("connected as id " + connection.threadId);
+manager();
 });
 
-inquirer
-    .prompt([
-        {
-            type: "list",
-            name: "manOptions",
-            message: "What would you like to do?",
-            choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
-        }
-    ]).then(answers => {
-        if(answers.manOptions === "View Products for Sale")
-    })
+function manager() {   
+    inquirer
+        .prompt([
+            {
+                type: "list",
+                name: "manOptions",
+                message: "What would you like to do?",
+                choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
+            }
+        ]).then(answers => {
+            if(answers.manOptions === "View Products for Sale") {
+                console.log("Viewing Products for Sale".bgRed.black);
+                connection.query("SELECT * FROM products", function (err, result) {
+                    if (err) throw err;
+                    console.table(result);
+                    manager();
+                })
+            }
+            if(answers.manOptions === "View Low Inventory") {
+                console.log("Viewing Items with Low Inventories".bgRed.black);
+                connection.query("SELECT * FROM products WHERE stock_quantity < 5", function (err, result) {
+                    if (err) throw err;
+                    console.table(result);
+                    manager();
+                })
+            }
+            if(answers.manOptions === "Add to Inventory") {
+                connection.query("SELECT * FROM products", function (err, result) {
+                    if (err) throw err;
+                    console.log(" ")
+                    console.table(result);
+                });
+                inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            name: "addTo",
+                            message: "Which item's inventory would you like to add to? (select item_id)"
+                        },
+                        {
+                            type: "number",
+                            name: "howMany",
+                            message: "How many of this item are you adding? "
+                        }
+                    ]).then(answers => {
+                        console.log(("Added " + answers.howMany + " to inventory for item_id " + answers.addTo).bgRed.black);
+                        connection.query("UPDATE products SET stock_quantity = stock_quantity + " + answers.howMany + " WHERE item_id = " + answers.addTo, function (err, result) {
+                            if (err) throw err;
+                        connection.query("SELECT FROM * products", function (err, result) {
+                            if (err) throw err;
+                            console.table(result);
+                        })
+                            manager();
+                        })
+                    })
+            }
+        })
+
+    }
+
+//OFFICE HOURS: Can I have MySQL run one command after another? Lines 71-76
+
