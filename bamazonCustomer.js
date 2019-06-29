@@ -42,27 +42,39 @@ function viewProducts() {
         ]).then(answers => {
           var item = answers.selectID;
           var quantity = answers.howMany;
-          connection.query("SELECT * FROM products WHERE item_id = " + item + " AND stock_quantity >= " + quantity, function (err, result) {
-            console.table(result);
-            if(result.length < 1) {
-              console.log("Insufficient Quantity! Please Try Again!".bgRed.black);
-              viewProducts();
-            } 
-          else {
-              inquirer
-                .prompt([
-                  {
-                    type: "confirm",
-                    name: "confirm",
-                    message: "Are you sure you'd like to purchase " + answers.howMany + " of this item?"
-                  }
-                ]).then(answers => {
-                  
-                })
+            connection.query("SELECT * FROM products WHERE item_id = " + item + " AND stock_quantity >= " + quantity, function (err, result) {
+              console.table(result);
+                if(result.length < 1) {
+                  console.log("Insufficient Quantity! Please Try Again!".bgRed.black);
+                  viewProducts();
+                } else {
+                  connection.query("SELECT price FROM products WHERE item_id = " + answers.selectID, function (err, result) {
+                    var ID = answers.selectID;
+                    var quantity = answers.howMany;
+                    var totalCost = (result[0].price * answers.howMany).toFixed(2);
+                    inquirer
+                      .prompt([
+                        {
+                          type: "list",
+                          name: "confirm",
+                          message: "Are you sure you'd like to purchase " + answers.howMany + " of this item for $" + totalCost + "?",
+                          choices: ["Yes", "No"]
+                        }
+                      ]).then(answers => {
+                        if(answers.confirm === "Yes") {
+                          connection.query("UPDATE products SET stock_quantity = stock_quantity - " + quantity + " WHERE item_id = " + ID, function (err, result) {
+                            if (err) throw err;
+                            console.log(("You have been charged $" + totalCost + " for this purchase").bgGreen.black);
+                            viewProducts();
+                            })
+                        } else {
+                          viewProducts();
+                        }
+                      })
+                  })
           }
         });
       })
     })
 }
 
-//OFFICE HOURS: Line 47. Not sure how to identify an empty table (array?) sent back from MySQL
