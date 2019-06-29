@@ -43,23 +43,26 @@ function viewProducts() {
           var item = answers.selectID;
           var quantity = answers.howMany;
           connection.query("SELECT * FROM products WHERE item_id = " + item + " AND stock_quantity >= " + quantity, function (err, result) {
-            console.log(result);
-            if(!result) {
+            console.table(result);
+            if(result.length < 1) {
               console.log("Insufficient Quantity! Please Try Again!".bgRed.black);
-              connection.end();
               viewProducts();
             } 
-          // else {
-          //     inquirer
-          //       .prompt([
-          //         {
-          //           type: "confirm",
-          //           name: "confirm",
-          //           message: "Are you sure you'd like to purchase " + answers.howMany + " of this item?"
-          //         }
-          //       ]);
-          // }
+          else {
+              inquirer
+                .prompt([
+                  {
+                    type: "confirm",
+                    name: "confirm",
+                    message: "Are you sure you'd like to purchase " + answers.howMany + " of this item?"
+                  }
+                ]).then(answers => {
+                  
+                })
+          }
         });
       })
     })
 }
+
+//OFFICE HOURS: Line 47. Not sure how to identify an empty table (array?) sent back from MySQL

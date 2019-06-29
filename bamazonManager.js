@@ -70,17 +70,53 @@ function manager() {
                         console.log(("Added " + answers.howMany + " to inventory for item_id " + answers.addTo).bgRed.black);
                         connection.query("UPDATE products SET stock_quantity = stock_quantity + " + answers.howMany + " WHERE item_id = " + answers.addTo, function (err, result) {
                             if (err) throw err;
-                        connection.query("SELECT FROM * products", function (err, result) {
+                        connection.query("SELECT * FROM products", function (err, result) {
                             if (err) throw err;
+                            console.log(" ")
                             console.table(result);
-                        })
                             manager();
                         })
+                        })
+                    })
+                }
+            if(answers.manOptions === "Add New Product") {
+                inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            name: "prodName",
+                            message: "What is the product called? (Product name)"
+                        },
+                        {   type: "list",
+                            name: "prodDept",
+                            message: "Which department is this product in?",
+                            choices: ["Grocery", "Clothing", "Home Goods", "Pharmacy", "Garden", "Sporting Goods", "Pets", "Media", "Electonics", "Games", "Other"]
+                        },
+                        {
+                            type: "number",
+                            name: "prodPrice",
+                            message: "What is the cost per item?"
+                        },
+                        {
+                            type: "number",
+                            name: "prodQuant",
+                            message: "How many of this product are you adding to the inventory?"
+                        }
+                    ]).then(answers => {
+                        console.log("INSERT INTO products (product_name, department_name, price, stock_quantity)VALUES (" + answers.prodName + ", " + answers.prodDept + ", " + answers.prodPrice + ", " + answers.prodQuant + ")");
+                        console.log(("Catalog now includes " + answers.prodQuant + " " + answers.prodName + "'s in the " + answers.prodDept + " Department at " + answers.prodPrice + " per unit.").bgRed.black);
+                        connection.query('INSERT INTO products (product_name, department_name, price, stock_quantity)VALUES ("' + answers.prodName + '", "' + answers.prodDept + '", "' + answers.prodPrice + '", "' + answers.prodQuant + '")', function (err, result) {
+                            if (err) throw err;
+                        connection.query("SELECT * FROM products", function (err, result) {
+                            if (err) throw err;
+                            console.table(result);
+                            manager();
+                        })
+                    })
+                        
                     })
             }
         })
 
     }
-
-//OFFICE HOURS: Can I have MySQL run one command after another? Lines 71-76
 
